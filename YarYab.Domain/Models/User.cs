@@ -14,9 +14,9 @@ namespace YarYab.Domain.Models
     public class User : BaseEntity
     {
         public string Name { get; set; }
-        public int Age { get; set; }
-        public char Gender { get; set; }
-        public string TelegramId { get; set; }
+        public short Age { get; set; }
+        public UserGender Gender { get; set; }
+         public string ChanelId { get; set; }
         public int? CityId { get; set; }
         public virtual City? City { get; set; }
          public string? ProfilePhoto { get; set; }
@@ -24,14 +24,9 @@ namespace YarYab.Domain.Models
         public ICollection<Request>? RequestsRecive { get; set; }
 
     }
-    public class City : BaseEntity
+    public enum UserGender
     {
-        public string Name { get; set; }
-        public int Type { get; set; }
-        public int? ParentId { get; set; }
-        public City Parent { get; set; }
-        public ICollection<City> Children { get; set; }
-        public ICollection<User> Users { get; set; }
-
+        Man,
+        Woman
     }
 }

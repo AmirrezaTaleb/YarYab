@@ -29,16 +29,16 @@ namespace YarYab.API.Controllers.v1
         }
 
         [HttpPost]
-        public async Task<ActionResult<int>> AddUser([FromBody] User user, CancellationToken cancellationToken)
+        public async Task<ActionResult<int>> AddUser([FromBody] AddSimpleUserDTO user, CancellationToken cancellationToken)
         {
-            await _userService.AddUserAsync(user, cancellationToken);
+            await _userService.AddUserSimpleAsync(user, cancellationToken);
             return Ok();
         }
 
         [HttpGet("{userId}")]
-        public async Task<ActionResult<User>> GetUser(int userId)
+        public async Task<ActionResult<User>> GetUser(int userId, CancellationToken cancellationToken)
         {
-            var user = await _userService.GetUserByIdAsync(userId);
+            var user = await _userService.GetUserByIdAsync(userId, cancellationToken);
             if (user == null)
             {
                 return NotFound();
@@ -47,22 +47,17 @@ namespace YarYab.API.Controllers.v1
         }
 
         [HttpPut("{userId}")]
-        public async Task<IActionResult> UpdateUser(int userId, [FromBody] User user)
+        public async Task<IActionResult> UpdateUser([FromBody] EditUserDTO user, CancellationToken cancellationToken)
         {
-            if (userId != user.Id)
-            {
-                return BadRequest("User ID mismatch");
-            }
-
-            await _userService.UpdateUserAsync(user);
-            return NoContent();
+            await _userService.UpdateUserAsync(user, cancellationToken);
+            return Ok();
         }
 
         [HttpDelete("{userId}")]
-        public async Task<IActionResult> DeleteUser(int userId)
+        public async Task<IActionResult> DeleteUser(int userId, CancellationToken cancellationToken)
         {
-            await _userService.DeleteUserAsync(userId);
-            return NoContent();
+            await _userService.DeleteUserAsync(userId, cancellationToken);
+            return Ok();
         }
     }
 }

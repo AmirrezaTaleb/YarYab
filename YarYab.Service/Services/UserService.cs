@@ -19,6 +19,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using YarYab.Data.Repositories;
+using System.Threading;
 
 namespace YarYab.Service.Services
 {
@@ -37,24 +38,28 @@ namespace YarYab.Service.Services
             _repositoryManager = repositoryManager;
         }
 
-        public async Task AddUserAsync(User user, CancellationToken cancellationToken)
+        public async Task AddUserSimpleAsync(AddSimpleUserDTO user, CancellationToken cancellationToken)
         {
-            await _repositoryManager.UserRepository.AddAsync(user, cancellationToken, true);
+            User userModel = user.ToEntity(_mapper);
+            await _repositoryManager.UserRepository.AddAsync(userModel, cancellationToken);
         }
 
-        public Task DeleteUserAsync(int userId)
+        public async Task DeleteUserAsync(int userId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            User user = await GetUserByIdAsync(userId, cancellationToken);
+            user.SoftDelete();
+            await _repositoryManager.UserRepository.UpdateAsync(user, cancellationToken);
         }
 
-        public Task<User> GetUserByIdAsync(int userId)
+        public async Task<User> GetUserByIdAsync(int userId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return await _repositoryManager.UserRepository.GetByIdAsync(cancellationToken, userId);
         }
 
-        public Task UpdateUserAsync(User user)
+        public async Task UpdateUserAsync(EditUserDTO user, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            User userModel = user.ToEntity(_mapper);
+            await _repositoryManager.UserRepository.UpdateAsync(userModel, cancellationToken);
         }
     }
 }

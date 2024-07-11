@@ -28,7 +28,7 @@ namespace YarYab.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Gender).IsRequired().HasMaxLength(10);
-                entity.Property(e => e.TelegramId).HasMaxLength(100);
+                entity.Property(e => e.ChanelId).HasMaxLength(100);
                 entity.Property(e => e.ProfilePhoto).HasMaxLength(255);
                 entity.Property(e => e.IsDeleted).IsRequired();
 

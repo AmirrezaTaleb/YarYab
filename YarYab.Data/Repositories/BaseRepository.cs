@@ -34,20 +34,11 @@ namespace YarYab.Data.Repositories
 
         public virtual async Task AddAsync(TEntity entity, CancellationToken cancellationToken, bool saveNow = true)
         {
-            try
-            {
-
-                Assert.NotNull(entity, nameof(entity));
-                await Entities.AddAsync(entity, cancellationToken).ConfigureAwait(false);
-                if (saveNow)
-                    await DbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
-            }
-            catch (Exception ex)
-            {
-
-                throw;
-            }}
+            Assert.NotNull(entity, nameof(entity));
+            await Entities.AddAsync(entity, cancellationToken).ConfigureAwait(false);
+            if (saveNow)
+                await DbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
 
         public virtual async Task AddRangeAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken, bool saveNow = true)
         {
@@ -59,10 +50,21 @@ namespace YarYab.Data.Repositories
 
         public virtual async Task UpdateAsync(TEntity entity, CancellationToken cancellationToken, bool saveNow = true)
         {
-                Assert.NotNull(entity, nameof(entity));
-                Entities.Update(entity);
-                if (saveNow)
+            Assert.NotNull(entity, nameof(entity));
+            Entities.Update(entity);
+            if (saveNow)
+            {
+                try
+                {
+
                     await DbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+
+                    throw;
+                }
+            }
         }
 
         public virtual async Task UpdateRangeAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken, bool saveNow = true)

@@ -1,20 +1,36 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using YarYab.Domain.Models;
+using YarYab.Service.DTO;
 
 namespace YarYab.API.DTO
 {
-    public class AddSimpleUserDTO/* : BaseDto<UserDto, User>, IValidatableobject*/
+    public class AddSimpleUserDTO : BaseDto<AddSimpleUserDTO, User>
     {
         [Required]
-        [StringLength(100)]
-        public string UserName { get; set; }
+        [StringLength(20)]
+        public string Name { get; set; }
+        [Required]
+        public short Age { get; set; }
+        [Required]
+        public UserGender Gender { get; set; }
+        [Required]
+        public string ChanelId { get; set; }
+    }
+    public class EditUserDTO : BaseDto<EditUserDTO, User>
+    {
 
         [Required]
-        [StringLength(100)]
-        public string Email { get; set; }
-
+        public int Id { get; set; }
         [Required]
-        [StringLength(500)]
-        public string Password { get; set; }
-
+        [StringLength(20)]
+        public string Name { get; set; }
+        [Required]
+        public short Age { get; set; }
+        [Required]
+        public UserGender Gender { get; set; }
+        [Required]
+        public string ChanelId { get; set; }
+        public int? CityId { get; set; }
+        public string? ProfilePhoto { get; set; }
     }
 }

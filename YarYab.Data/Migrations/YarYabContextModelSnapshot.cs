@@ -101,8 +101,13 @@ namespace YarYab.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Age")
-                        .HasColumnType("integer");
+                    b.Property<short>("Age")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("ChanelId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int?>("CityId")
                         .HasColumnType("integer");
@@ -110,9 +115,9 @@ namespace YarYab.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<char>("Gender")
+                    b.Property<int>("Gender")
                         .HasMaxLength(10)
-                        .HasColumnType("character(10)");
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -125,11 +130,6 @@ namespace YarYab.Data.Migrations
                     b.Property<string>("ProfilePhoto")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
-
-                    b.Property<string>("TelegramId")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
 
                     b.HasKey("Id");
 

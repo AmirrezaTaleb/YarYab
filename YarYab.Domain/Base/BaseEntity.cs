@@ -18,6 +18,10 @@ namespace YarYab.Domain
         public DateTime CreatedAt { get; set; }
         public bool IsDeleted { get; set; }
 
+        public void SoftDelete()
+        {
+            IsDeleted = true;
+        }
     }
 
 }
