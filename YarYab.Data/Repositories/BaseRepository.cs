@@ -35,6 +35,7 @@ namespace YarYab.Data.Repositories
         public virtual async Task AddAsync(TEntity entity, CancellationToken cancellationToken, bool saveNow = true)
         {
             Assert.NotNull(entity, nameof(entity));
+            entity.SetCreatedAt();
             await Entities.AddAsync(entity, cancellationToken).ConfigureAwait(false);
             if (saveNow)
                 await DbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -54,16 +55,8 @@ namespace YarYab.Data.Repositories
             Entities.Update(entity);
             if (saveNow)
             {
-                try
-                {
 
-                    await DbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-
-                    throw;
-                }
+                await DbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 

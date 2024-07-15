@@ -16,6 +16,8 @@ namespace YarYab.Service.Interfaces
     {
         Task<User> GetUserByIdAsync(int userId, CancellationToken cancellationToken);
         Task AddUserSimpleAsync(AddSimpleUserDTO user, CancellationToken cancellationToken);
+        Task SetLocation(SetUserLocationDTO user, CancellationToken cancellationToken);
+        Task AddProfilePhotoAsync(int userId,IFormFile file, CancellationToken cancellationToken);
         Task UpdateUserAsync(EditUserDTO user , CancellationToken cancellationToken);
         Task DeleteUserAsync(int userId, CancellationToken cancellationToken);
     }

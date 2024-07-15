@@ -28,10 +28,22 @@ namespace YarYab.API.Controllers.v1
             _userService = userService;
         }
 
-        [HttpPost]
+        [HttpPost("[Action]")]
         public async Task<ActionResult<int>> AddUser([FromBody] AddSimpleUserDTO user, CancellationToken cancellationToken)
         {
             await _userService.AddUserSimpleAsync(user, cancellationToken);
+            return Ok();
+        }
+        [HttpPatch("[Action]")]
+        public async Task<ActionResult<int>> SetProfilePhoto(int userId, IFormFile file, CancellationToken cancellationToken)
+        {
+            await _userService.AddProfilePhotoAsync(userId, file, cancellationToken);
+            return Ok();
+        }
+        [HttpPatch("[Action]")]
+        public async Task<ActionResult<int>> SetLocation([FromBody] SetUserLocationDTO user, CancellationToken cancellationToken)
+        {
+            await _userService.SetLocation(user, cancellationToken);
             return Ok();
         }
 
@@ -46,7 +58,7 @@ namespace YarYab.API.Controllers.v1
             return Ok(user);
         }
 
-        [HttpPut("{userId}")]
+        [HttpPut("[Action]/{userId}")]
         public async Task<IActionResult> UpdateUser([FromBody] EditUserDTO user, CancellationToken cancellationToken)
         {
             await _userService.UpdateUserAsync(user, cancellationToken);

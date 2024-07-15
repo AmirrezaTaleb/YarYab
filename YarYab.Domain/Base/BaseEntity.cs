@@ -9,6 +9,9 @@ namespace YarYab.Domain
 {
     public interface IEntity
     {
+        public void SoftDelete();
+        public void SetCreatedAt();
+
     }
 
 
@@ -21,6 +24,10 @@ namespace YarYab.Domain
         public void SoftDelete()
         {
             IsDeleted = true;
+        }
+        public void SetCreatedAt()
+        {
+            CreatedAt = DateTime.Now;
         }
     }
 

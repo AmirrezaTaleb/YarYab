@@ -25,14 +25,14 @@ namespace YarYab.API.Controllers.v1
             _requestService = requestService;
         }
 
-        [HttpPost]
+        [HttpPost("[Action]")]
         public async Task<ActionResult<int>> SendRequest([FromBody] SendRequestDTO request, CancellationToken cancellationToken)
         {
             await _requestService.SendRequestAsync(request, cancellationToken);
             return Ok();
         }
 
-        [HttpGet("{requestId}")]
+        [HttpGet("[Action]")]
         public async Task<ActionResult<Request>> GetRequest(int requestId, CancellationToken cancellationToken)
         {
             var request = await _requestService.GetRequestByIdAsync(requestId, cancellationToken);
@@ -42,7 +42,7 @@ namespace YarYab.API.Controllers.v1
             }
             return Ok(request);
         }
-        [HttpDelete("{requestId}")]
+        [HttpDelete("[Action]")]
         public async Task<IActionResult> DeleteRequest(int requestId, CancellationToken cancellationToken)
         {
             await _requestService.DeleteRequestAsync(requestId, cancellationToken);
