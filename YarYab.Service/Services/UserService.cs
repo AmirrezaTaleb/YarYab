@@ -38,6 +38,15 @@ namespace YarYab.Service.Services
             _repositoryManager = repositoryManager;
         }
 
+        public async Task AddProfilePhotoAsync(int userId, IFormFile file, CancellationToken cancellationToken)
+        {
+            User user = await GetUserByIdAsync(userId, cancellationToken);
+
+            user.ProfilePhoto = await file.ConvertToByteArrayAsync();
+
+            await _repositoryManager.UserRepository.UpdateAsync(user, cancellationToken);
+        }
+
         public async Task AddUserSimpleAsync(AddSimpleUserDTO user, CancellationToken cancellationToken)
         {
             User userModel = user.ToEntity(_mapper);
@@ -54,6 +63,14 @@ namespace YarYab.Service.Services
         public async Task<User> GetUserByIdAsync(int userId, CancellationToken cancellationToken)
         {
             return await _repositoryManager.UserRepository.GetByIdAsync(cancellationToken, userId);
+        }
+
+        public async Task SetLocation(SetUserLocationDTO user, CancellationToken cancellationToken)
+        {
+            User usermodel = await GetUserByIdAsync(user.Id, cancellationToken);
+            usermodel.Latitude = user.Latitude;
+            usermodel.Longitude = user.Longitude;
+            await _repositoryManager.UserRepository.UpdateAsync(usermodel, cancellationToken);
         }
 
         public async Task UpdateUserAsync(EditUserDTO user, CancellationToken cancellationToken)
