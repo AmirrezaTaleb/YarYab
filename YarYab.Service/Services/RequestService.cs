@@ -32,22 +32,26 @@ namespace YarYab.Service
             _mapper = mapper;
         }
 
-        public Task DeleteRequestAsync(int requestId)
+        public async Task DeleteRequestAsync(int requestId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            Request request = await GetRequestByIdAsync(requestId, cancellationToken);
+            request.SoftDelete();
+            await _repositoryManager.RequestRepository.UpdateAsync(request, cancellationToken);
         }
 
-        public Task<Request> GetRequestByIdAsync(int requestId)
+        public async  Task<Request> GetRequestByIdAsync(int requestId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return await _repositoryManager.RequestRepository.GetByIdAsync(cancellationToken, requestId);
         }
 
-        public Task<int> SendRequestAsync(Request request)
+        public  async Task SendRequestAsync(SendRequestDTO request , CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            Request requestModel = request.ToEntity(_mapper);
+            requestModel.Status = RequestStatus.NotSeen;
+            await _repositoryManager.RequestRepository.AddAsync(requestModel, cancellationToken);
         }
 
-        public Task UpdateRequestAsync(Request request)
+        public async Task UpdateRequestAsync(Request request, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

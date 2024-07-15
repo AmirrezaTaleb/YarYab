@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using YarYab.Data;
@@ -11,9 +12,11 @@ using YarYab.Data;
 namespace YarYab.Data.Migrations
 {
     [DbContext(typeof(YarYabContext))]
-    partial class YarYabContextModelSnapshot : ModelSnapshot
+    [Migration("20240711124819_UpdateUserdataType")]
+    partial class UpdateUserdataType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -79,9 +82,10 @@ namespace YarYab.Data.Migrations
                     b.Property<int>("SenderId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Status")
+                    b.Property<string>("Status")
+                        .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("integer");
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
 
