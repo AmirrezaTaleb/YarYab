@@ -2,6 +2,12 @@ name: Build and Push Docker Image
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to use for the Docker image'
+        required: true
+        default: 'latest'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -10,15 +16,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-          - name: Get the tag
+      - name: Get the tag
         id: get_tag
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            TAG="${{ github.event.inputs.tag }}"
-          else
-            TAG=$(git describe --tags --exact-match 2>/dev/null || echo "latest")
-          fi
-          # Replace invalid characters with hyphens
+          TAG="${{ github.event.inputs.tag }}"
+          # Replace invalid characters with hyphens and convert to lowercase
           TAG=$(echo $TAG | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9.-' '-')
           echo "Formatted TAG: $TAG"
           echo "::set-output name=tag::$TAG"
