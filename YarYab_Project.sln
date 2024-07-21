@@ -17,6 +17,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YarYab.Common", "YarYab.Com
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YarYab.API", "YarYab.API\YarYab.API.csproj", "{339BB456-7AE3-431B-8666-38457458A9B5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DockerFiles", "DockerFiles", "{51CEB7EE-69D3-4AFA-BE33-BCED162DD712}"
+	ProjectSection(SolutionItems) = preProject
+		.dockerfile = .dockerfile
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
