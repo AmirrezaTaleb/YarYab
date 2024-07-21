@@ -36,13 +36,7 @@ namespace YarYab.WebFramework.Configuration
             {
                 options
                       .UseNpgsql(configuration.GetConnectionString("postgresql"));
-
-                    //.UseSqlServer(configuration.GetConnectionString("SqlServer"));
-                //Tips
-                //Automatic client evaluation is no longer supported. This event is no longer generated.
-                //This line is no longer needed.
-                //.ConfigureWarnings(warning => warning.Throw(RelationalEventId.QueryClientEvaluationWarning));
-            });
+             });
         }
 
         public static void AddMinimalMvc(this IServiceCollection services)

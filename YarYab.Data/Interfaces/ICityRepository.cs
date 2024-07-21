@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace YarYab.Data.Interfaces
 {
-    public interface IUserRepository : IBaseRepository<User> 
+    public interface ICityRepository : IBaseRepository<City> 
     {
      }
 }

@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using YarYab.Service.Services;
 using YarYab.Service.Interfaces;
+using NLog.Filters;
 
 namespace YarYab.API.Controllers.v1
 {
@@ -27,7 +28,6 @@ namespace YarYab.API.Controllers.v1
         {
             _userService = userService;
         }
-
         [HttpPost("[Action]")]
         public async Task<ActionResult<int>> AddUser([FromBody] AddSimpleUserDTO user, CancellationToken cancellationToken)
         {
@@ -46,7 +46,6 @@ namespace YarYab.API.Controllers.v1
             await _userService.SetLocation(user, cancellationToken);
             return Ok();
         }
-
         [HttpGet("{userId}")]
         public async Task<ActionResult<User>> GetUser(int userId, CancellationToken cancellationToken)
         {
@@ -57,14 +56,42 @@ namespace YarYab.API.Controllers.v1
             }
             return Ok(user);
         }
+        [HttpGet("[Action]")]
+        public async Task<ActionResult<List<User>>> GetAllUser([FromQuery] GetAllUserSelectDTO? filter, CancellationToken cancellationToken)
+        {
+            var user = await _userService.GetUserByFilterAsync(filter, cancellationToken);
+            user = _userService.GetNearUser(user, filter.Location, cancellationToken);
 
+            if (user == null)
+            {
+                return NotFound();
+            }
+            return Ok(user);
+        }
+        [HttpGet("[Action]")]
+        public async Task<ActionResult<List<City>>> GetCities([FromQuery] GetCitiesSelectDTO? filter, CancellationToken cancellationToken)
+        {
+            var Cities = await _userService.GetCitiesByParentAsync(filter, cancellationToken);
+
+
+            if (Cities == null)
+            {
+                return NotFound();
+            }
+            return Ok(Cities);
+        }
         [HttpPut("[Action]/{userId}")]
         public async Task<IActionResult> UpdateUser([FromBody] EditUserDTO user, CancellationToken cancellationToken)
         {
             await _userService.UpdateUserAsync(user, cancellationToken);
             return Ok();
         }
-
+        [HttpPut("[Action]/{userId}")]
+        public async Task<IActionResult> UpdateUserScore([FromBody] UserScoreSelectDTO user, CancellationToken cancellationToken)
+        {
+            await _userService.UpdateUserScoreAsync(user, cancellationToken);
+            return Ok();
+        }
         [HttpDelete("{userId}")]
         public async Task<IActionResult> DeleteUser(int userId, CancellationToken cancellationToken)
         {

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Principal;
+using YarYab.Service.Interfaces;
 
 namespace YarYab.API.Controllers.v1
 {
@@ -19,17 +20,26 @@ namespace YarYab.API.Controllers.v1
     public class RequestController : ControllerBase
     {
         private readonly IRequestService _requestService;
+        private readonly IUserService _userService;
 
-        public RequestController(IRequestService requestService)
+        public RequestController(IRequestService requestService, IUserService userService)
         {
             _requestService = requestService;
+            _userService = userService;
         }
 
         [HttpPost("[Action]")]
         public async Task<ActionResult<int>> SendRequest([FromBody] SendRequestDTO request, CancellationToken cancellationToken)
         {
-            await _requestService.SendRequestAsync(request, cancellationToken);
-            return Ok();
+            if (await _userService.CheckUserAreValidAsync(request.SenderId, cancellationToken) && await _userService.CheckUserAreValidAsync(request.ReceiverId, cancellationToken))
+            {
+                await _requestService.SendRequestAsync(request, cancellationToken);
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
 
         [HttpGet("[Action]")]

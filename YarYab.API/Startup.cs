@@ -33,8 +33,9 @@ namespace YarYab.API
             services.AddMemoryCache();
 
             services.AddDbContext(Configuration);
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
- 
+
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRequestService, RequestService>();
             services.AddScoped<IRepositoryManager, RepositoryManager>();

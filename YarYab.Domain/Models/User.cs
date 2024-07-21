@@ -19,8 +19,9 @@ namespace YarYab.Domain.Models
         public UserGender Gender { get; set; }
         public string ChanelId { get; set; }
         public int? CityId { get; set; }
+        public int? Score { get; set; }
         public virtual City? City { get; set; }
-        public byte[] ProfilePhoto { get; set; }
+        public byte[]? ProfilePhoto { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         public ICollection<Request>? RequestsSend { get; set; }
