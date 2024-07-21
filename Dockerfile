@@ -1,22 +1,24 @@
-# Use the official .NET SDK image to build the application
+# Use the official .NET SDK image for build
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+
+# Set the working directory
 WORKDIR /app
 
-# Copy csproj and restore as distinct layers
-COPY *.csproj ./
+# Copy the .csproj files and restore dependencies
+COPY **/*.csproj ./
+RUN for file in $(find . -name '*.csproj'); do mkdir -p $(dirname $file); mv $file $(dirname $file); done
 RUN dotnet restore
 
-# Copy everything else and build the app
+# Copy the rest of the application code
 COPY . ./
+
+# Build the application
 RUN dotnet publish -c Release -o out
 
-# Use the official .NET runtime image to run the application
-FROM mcr.microsoft.com/dotnet/aspnet:7.0
+# Use the runtime image for the final stage
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
 WORKDIR /app
-COPY --from=build /app/out .
+COPY --from=build /app/out ./
 
-# Expose the port the app runs on
-EXPOSE 80
-
-# Run the application
-ENTRYPOINT ["dotnet", "YarYab.API.dll"]
+# Set the entry point for the application
+ENTRYPOINT ["dotnet", "YourMainProject.dll"]
