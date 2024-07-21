@@ -10,5 +10,6 @@ namespace YarYab.Data.Interfaces
     {
         IUserRepository UserRepository { get; }
         IRequestRepository RequestRepository { get; }
-      }
+        ICityRepository CityRepository { get; }
+    }
 }

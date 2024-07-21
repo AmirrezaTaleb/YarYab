@@ -27,6 +27,29 @@ namespace YarYab.API.DTO
         public double Longitude { get; set; }
 
     }
+    public class GetAllUserSelectDTO
+    {
+        public UserGender? Gender { get; set; }
+        public int? City_Id { get; set; }
+        public short? Age { get; set; }
+        public GetNearUserSelectDTO? Location { get; set; }
+    }
+    public class GetCitiesSelectDTO
+    {
+        public int? Parent_Id { get; set; }
+    }
+    public class GetNearUserSelectDTO
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
+    public class UserScoreSelectDTO
+    {
+        public int? Update_Score { get; set; }
+        public int User_id { get; set; }
+
+
+    }
     public class EditUserDTO : BaseDto<EditUserDTO, User>
     {
 

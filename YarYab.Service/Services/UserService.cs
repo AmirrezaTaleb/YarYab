@@ -53,11 +53,53 @@ namespace YarYab.Service.Services
             await _repositoryManager.UserRepository.AddAsync(userModel, cancellationToken);
         }
 
+        public async Task<bool> CheckUserAreValidAsync(int userId, CancellationToken cancellationToken)
+        {
+            var User = await _repositoryManager.UserRepository.GetByIdAsync(cancellationToken, userId);
+            return User != null;
+        }
+
         public async Task DeleteUserAsync(int userId, CancellationToken cancellationToken)
         {
             User user = await GetUserByIdAsync(userId, cancellationToken);
             user.SoftDelete();
             await _repositoryManager.UserRepository.UpdateAsync(user, cancellationToken);
+        }
+
+        public async Task<List<City>> GetCitiesByParentAsync(GetCitiesSelectDTO? filter, CancellationToken cancellationToken)
+        {
+            return await _repositoryManager.CityRepository.Get().Where(c => (c.ParentId ?? 0) == (filter.Parent_Id ?? 0)).ToListAsync();
+        }
+
+        public List<User> GetNearUser(List<User> users, GetNearUserSelectDTO? filter, CancellationToken cancellationToken)
+        {
+            if (filter?.Latitude != null && filter?.Longitude != null)
+            {
+                int radius = 10;
+                users = users.Where(user => GeoHelper.Haversine((double)filter.Latitude, (double)filter.Longitude, user.Latitude, user.Longitude) <= radius).ToList();
+            }
+            return users;
+        }
+
+        public async Task<List<User>> GetUserByFilterAsync(GetAllUserSelectDTO? filter, CancellationToken cancellationToken)
+        {
+            var searchuser = _repositoryManager.UserRepository.Get();
+            if (filter?.Age != null)
+            {
+                int AgeRange = 1;
+                searchuser = searchuser.Where(a => a.Age > filter.Age - AgeRange && a.Age < filter.Age + AgeRange);
+            }
+            if (filter?.Gender != null)
+            {
+                searchuser = searchuser.Where(g => g.Gender == filter.Gender);
+            }
+            if (filter?.City_Id != null)
+            {
+                searchuser = searchuser.Where(c => c.CityId == filter.City_Id);
+
+            }
+
+            return await searchuser.ToListAsync(cancellationToken);
         }
 
         public async Task<User> GetUserByIdAsync(int userId, CancellationToken cancellationToken)
@@ -76,6 +118,13 @@ namespace YarYab.Service.Services
         public async Task UpdateUserAsync(EditUserDTO user, CancellationToken cancellationToken)
         {
             User userModel = user.ToEntity(_mapper);
+            await _repositoryManager.UserRepository.UpdateAsync(userModel, cancellationToken);
+        }
+
+        public async Task UpdateUserScoreAsync(UserScoreSelectDTO user, CancellationToken cancellationToken)
+        {
+            User userModel = await GetUserByIdAsync(user.User_id, cancellationToken);
+            userModel.Score = userModel.Score ?? 0 + user.Update_Score;
             await _repositoryManager.UserRepository.UpdateAsync(userModel, cancellationToken);
         }
     }

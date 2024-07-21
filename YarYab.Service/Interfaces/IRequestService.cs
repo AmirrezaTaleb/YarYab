@@ -12,7 +12,7 @@ namespace YarYab.Service
 {
     public interface IRequestService : IBaseService
     {
-        Task SendRequestAsync(SendRequestDTO request , CancellationToken cancellationToken);
+         Task SendRequestAsync(SendRequestDTO request , CancellationToken cancellationToken);
         Task<Request> GetRequestByIdAsync(int requestId, CancellationToken cancellationToken);
         Task UpdateRequestAsync(Request request, CancellationToken cancellationToken    );
         Task DeleteRequestAsync(int requestId, CancellationToken cancellationToken);
