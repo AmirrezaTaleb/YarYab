@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Common\Helper\" />
     <Folder Include="Common\Mocks\" />
   </ItemGroup>
 
