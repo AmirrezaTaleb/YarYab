@@ -14,6 +14,7 @@ namespace YarYab.Service.Interfaces
 {
     public interface IUserService: IBaseService
     {
+
         Task<User> GetUserByIdAsync(int userId, CancellationToken cancellationToken);
          Task AddUserSimpleAsync(AddSimpleUserDTO user, CancellationToken cancellationToken);
         Task SetLocation(SetUserLocationDTO user, CancellationToken cancellationToken);
@@ -25,5 +26,6 @@ namespace YarYab.Service.Interfaces
         List<User> GetNearUser(List<User> users, GetNearUserSelectDTO? filter, CancellationToken cancellationToken);
         Task UpdateUserScoreAsync(UserScoreSelectDTO user, CancellationToken cancellationToken);
         Task<List<City>> GetCitiesByParentAsync(GetCitiesSelectDTO? filter, CancellationToken cancellationToken);
+        Task<List<GetContactDTO>> GetAllMyFriendAsync(int userId, CancellationToken cancellationToken);
     }
 }

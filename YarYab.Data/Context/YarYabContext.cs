@@ -67,7 +67,19 @@ namespace YarYab.Data
                       .OnDelete(DeleteBehavior.NoAction);
             });
 
+            modelBuilder.Entity<Contact>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.UserId).IsRequired() ;
+                entity.Property(e => e.FriendId).IsRequired() ;
+                 entity.Property(e => e.IsDeleted).IsRequired();
 
+                entity.HasOne(e => e.User)
+                      .WithMany(u => u.Contacts)
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.NoAction);
+
+             });
             FilterConfigurationDeleted(modelBuilder);
             var entitiesAssembly = typeof(IEntity).Assembly;
             modelBuilder.RegisterAllEntities<IEntity>(entitiesAssembly);
@@ -128,6 +140,8 @@ namespace YarYab.Data
         {
             modelBuilder.Entity<Request>().HasQueryFilter(p => p.IsDeleted == false);
             modelBuilder.Entity<User>().HasQueryFilter(p => p.IsDeleted == false);
+            modelBuilder.Entity<City>().HasQueryFilter(p => p.IsDeleted == false);
+            modelBuilder.Entity<Contact>().HasQueryFilter(p => p.IsDeleted == false);
 
         }
 

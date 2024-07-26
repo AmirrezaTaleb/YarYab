@@ -26,7 +26,8 @@ namespace YarYab.Domain.Models
         public double Longitude { get; set; }
         public ICollection<Request>? RequestsSend { get; set; }
         public ICollection<Request>? RequestsRecive { get; set; }
-
+        public ICollection<Contact>? Contacts { get; set; }
+ 
     }
     public enum UserGender
     {

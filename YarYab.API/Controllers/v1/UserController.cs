@@ -69,6 +69,17 @@ namespace YarYab.API.Controllers.v1
             return Ok(user);
         }
         [HttpGet("[Action]")]
+        public async Task<ActionResult<List<GetContactDTO>>> GetAllMyFriend(int userId, CancellationToken cancellationToken)
+        {
+            var Friends = await _userService.GetAllMyFriendAsync(userId, cancellationToken);
+            if (Friends == null)
+            {
+                return NotFound();
+            }
+            return Ok(Friends);
+        }
+
+        [HttpGet("[Action]")]
         public async Task<ActionResult<List<City>>> GetCities([FromQuery] GetCitiesSelectDTO? filter, CancellationToken cancellationToken)
         {
             var Cities = await _userService.GetCitiesByParentAsync(filter, cancellationToken);
@@ -98,5 +109,8 @@ namespace YarYab.API.Controllers.v1
             await _userService.DeleteUserAsync(userId, cancellationToken);
             return Ok();
         }
+   
+
+
     }
 }

@@ -66,6 +66,21 @@ namespace YarYab.Service.Services
             await _repositoryManager.UserRepository.UpdateAsync(user, cancellationToken);
         }
 
+        public async Task<List<GetContactDTO>> GetAllMyFriendAsync(int userId, CancellationToken cancellationToken)
+        {
+            var Dto = new List<GetContactDTO>();
+            var contact = await _repositoryManager.ContactRepository.Get().Include(c => c.Friend).Where(c => c.UserId == userId).ToListAsync(cancellationToken);
+            foreach (var item in contact)
+            {
+                var contactItem = new GetContactDTO();
+                contactItem.Friend = item.Friend;
+                contactItem.ContactId = item.Id;
+
+                Dto.Add(contactItem);
+            }
+            return Dto;
+        }
+
         public async Task<List<City>> GetCitiesByParentAsync(GetCitiesSelectDTO? filter, CancellationToken cancellationToken)
         {
             return await _repositoryManager.CityRepository.Get().Where(c => (c.ParentId ?? 0) == (filter.Parent_Id ?? 0)).ToListAsync();
@@ -127,6 +142,7 @@ namespace YarYab.Service.Services
             userModel.Score = userModel.Score ?? 0 + user.Update_Score;
             await _repositoryManager.UserRepository.UpdateAsync(userModel, cancellationToken);
         }
-    }
+
+     }
 }
 

@@ -21,8 +21,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace YarYab.Service
-{ 
-    public class RequestService :  IRequestService
+{
+    public class RequestService : IRequestService
     {
         private readonly IRepositoryManager _repositoryManager;
         private readonly IMapper _mapper;
@@ -39,21 +39,33 @@ namespace YarYab.Service
             await _repositoryManager.RequestRepository.UpdateAsync(request, cancellationToken);
         }
 
-        public async  Task<Request> GetRequestByIdAsync(int requestId, CancellationToken cancellationToken)
+        public async Task<List<Request>> GetSendRequestByStatusAsync(int userId, RequestStatus status, CancellationToken cancellationToken)
+        {
+            return await _repositoryManager.RequestRepository.Get().Where(x => x.Status == status && x.SenderId == userId).ToListAsync(cancellationToken);
+        }
+        public async Task<List<Request>> GetReciveRequestByStatusAsync(int userId, RequestStatus status, CancellationToken cancellationToken)
+        {
+            return await _repositoryManager.RequestRepository.Get().Where(x => x.Status == status && x.ReceiverId == userId).ToListAsync(cancellationToken);
+        }
+
+        public async Task<Request> GetRequestByIdAsync(int requestId, CancellationToken cancellationToken)
         {
             return await _repositoryManager.RequestRepository.GetByIdAsync(cancellationToken, requestId);
         }
 
-        public  async Task SendRequestAsync(SendRequestDTO request , CancellationToken cancellationToken)
+        public async Task SendRequestAsync(SendRequestDTO request, CancellationToken cancellationToken)
         {
             Request requestModel = request.ToEntity(_mapper);
             requestModel.Status = RequestStatus.NotSeen;
             await _repositoryManager.RequestRepository.AddAsync(requestModel, cancellationToken);
         }
 
-        public async Task UpdateRequestAsync(Request request, CancellationToken cancellationToken)
+        public async Task UpdateRequestStatusAsync(UpdateRequestStatusDTO request, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            Request Entity = await GetRequestByIdAsync(request.RequestId, cancellationToken);
+            Entity.Status = request.StatusId;
+            await _repositoryManager.RequestRepository.UpdateAsync(Entity, cancellationToken);
+
         }
     }
 }

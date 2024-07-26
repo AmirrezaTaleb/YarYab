@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YarYab.API", "YarYab.API\Ya
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DockerFiles", "DockerFiles", "{51CEB7EE-69D3-4AFA-BE33-BCED162DD712}"
 	ProjectSection(SolutionItems) = preProject
-		.dockerfile = .dockerfile
+		Dockerfile.dockerfile = Dockerfile.dockerfile
 	EndProjectSection
 EndProject
 Global

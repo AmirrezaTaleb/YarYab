@@ -13,14 +13,17 @@ namespace YarYab.Data.Repositories
         private readonly Lazy<IUserRepository> _userRepository;
         private readonly Lazy<IRequestRepository> _requestRepository;
         private readonly Lazy<ICityRepository> _cityRepository;
+        private readonly Lazy<IContactRepository> _contactRepository;
         public RepositoryManager(YarYabContext context)
         {
             _userRepository = new Lazy<IUserRepository>(() => new UserRepository(context));
             _requestRepository = new Lazy<IRequestRepository>(() => new RequestRepository(context));
             _cityRepository = new Lazy<ICityRepository>(() => new CityRepository(context));
+            _contactRepository = new Lazy<IContactRepository>(() => new ContactRepository(context));
         }
         public IUserRepository UserRepository => _userRepository.Value;
         public IRequestRepository RequestRepository => _requestRepository.Value;
         public ICityRepository CityRepository => _cityRepository.Value;
+        public IContactRepository ContactRepository =>  _contactRepository.Value;
     }
 }

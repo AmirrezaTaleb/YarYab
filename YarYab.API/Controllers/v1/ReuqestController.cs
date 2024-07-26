@@ -52,6 +52,34 @@ namespace YarYab.API.Controllers.v1
             }
             return Ok(request);
         }
+        [HttpGet("[Action]")]
+        public async Task<ActionResult<List<Request>>> GetReciveRequests(int userId, RequestStatus status,CancellationToken cancellationToken)
+        {
+            var request = await _requestService.GetReciveRequestByStatusAsync(userId, status, cancellationToken);
+            if (request == null)
+            {
+                return NotFound();
+            }
+            return Ok(request);
+        }
+        [HttpGet("[Action]")]
+        public async Task<ActionResult<List<Request>>> GetSendRequests(int userId, RequestStatus status, CancellationToken cancellationToken)
+        {
+            var request = await _requestService.GetSendRequestByStatusAsync(userId, status, cancellationToken);
+            if (request == null)
+            {
+                return NotFound();
+            }
+            return Ok(request);
+        }
+
+        [HttpPatch("[Action]/{RequestId}")]
+        public async Task<IActionResult> UpdateRequestStatus ([FromBody] UpdateRequestStatusDTO request, CancellationToken cancellationToken)
+        {
+            await _requestService.UpdateRequestStatusAsync(request, cancellationToken);
+            return Ok();
+        }
+
         [HttpDelete("[Action]")]
         public async Task<IActionResult> DeleteRequest(int requestId, CancellationToken cancellationToken)
         {

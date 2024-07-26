@@ -17,5 +17,13 @@ namespace YarYab.Service.DTO
         public string RequestMessage { get; set; }
 
     }
+       public class UpdateRequestStatusDTO : BaseDto<UpdateRequestStatusDTO, Request>
+    {
+        [Required]
+        public int RequestId { get; set; }
+         [Required]
+        public RequestStatus StatusId { get; set; }
+ 
+    }
 
 }

@@ -37,6 +37,7 @@ namespace YarYab.API
 
 
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IContactService, ContactService>();
             services.AddScoped<IRequestService, RequestService>();
             services.AddScoped<IRepositoryManager, RepositoryManager>();
             services.AddMinimalMvc();
