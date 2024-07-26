@@ -1,8 +1,12 @@
 name: Build and Push Docker Image
 
 on:
-
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to use for the Docker image'
+        required: true
+        default: 'latest'
 
 jobs:
   build:
@@ -12,10 +16,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Get the current tag
+      - name: Get the tag
         id: get_tag
         run: |
-          TAG=$(git describe --tags --exact-match 2>/dev/null || echo "")
+          TAG="${{ github.event.inputs.tag }}"
+          # Replace invalid characters with hyphens and convert to lowercase
+          TAG=$(echo $TAG | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9.-' '-')
+          # Ensure the tag does not end with a hyphen
+          TAG=$(echo $TAG | sed 's/-$//')
+          echo "Formatted TAG: $TAG"
           echo "::set-output name=tag::$TAG"
 
       - name: Log in to Docker Hub
@@ -32,7 +41,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/yaryabapi:${{ steps.get_tag.outputs.tag }}
+          tags: amirrezataleb/yaryabapi:${{ steps.get_tag.outputs.tag }}
 
       - name: Log out from Docker Hub
         run: docker logout
