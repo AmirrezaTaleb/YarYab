@@ -8,7 +8,7 @@ namespace YarYab.Telegram.Bot.Models
 {
     public record struct UserLocationModel
     {
-        public UserLocationModel(int userId, float lat, float lang)
+        public UserLocationModel(int userId, double lat, double lang)
         {
             this.UserId = userId;
             this.Lat = lat;
@@ -16,7 +16,7 @@ namespace YarYab.Telegram.Bot.Models
         }
 
         public int UserId { get; init; }
-        public float Lat { get; init; }
-        public float Lang { get; init; }
+        public double Lat { get; init; }
+        public double Lang { get; init; }
     }
 }

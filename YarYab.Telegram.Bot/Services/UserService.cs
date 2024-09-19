@@ -22,12 +22,13 @@ namespace YarYab.Telegram.Bot.Services
             _logger = logger;
         }
         #endregion
-        public async Task<Message> Profile(Message msg)
+        public async Task<UserProfileMessageModel> ShowProfile(Chat chat)
         {
-            string ProfileInformation = ProfileBanner();
-            var inlineMarkup = ProfileInlineKeyboardMarkup();
-            await using var fileStream = ProfilePhoto(); ;
-            return await _bot.SendPhotoAsync(msg.Chat, fileStream, caption: ProfileInformation, replyMarkup: inlineMarkup);
+            var model = new UserProfileMessageModel();
+            model.Banner = ProfileBanner();
+            model.InlineKeyboardMarkup = ProfileInlineKeyboardMarkup();
+            model.Photo = ProfilePhoto();
+            return model;
         }
         public async Task<UserLocationModel> CurentLocation(string UserId)
         {
@@ -86,7 +87,7 @@ namespace YarYab.Telegram.Bot.Services
 
     public interface IUserService
     {
-        Task<Message> Profile(Message msg);
+        Task<UserProfileMessageModel> ShowProfile(Chat chat);
         Task<UserLocationModel> CurentLocation(string UserId);
         Task SetLocation(UserLocationModel userLocation);
         InlineKeyboardMarkup LocationInlineKeyboardMarkup();

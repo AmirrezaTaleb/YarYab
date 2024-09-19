@@ -54,30 +54,134 @@ public class UpdateHandler : IUpdateHandler
             _ => UnknownUpdateHandlerAsync(update)
         });
     }
+    public ReplyKeyboardMarkup HomeInlineKeyboardMarkup()
+    {
 
+        return new ReplyKeyboardMarkup(new[]
+    {
+        new[] { new KeyboardButton("🔗 به یه ناشناس وصلم کن!") },
+        new[] { new KeyboardButton("🔍 جستجوی کاربران"), new KeyboardButton("📍 افراد نزدیک") },
+        new[] { new KeyboardButton("💰 سکه"), new KeyboardButton("👤 پروفایل"), new KeyboardButton("❓ راهنما") },
+        new[] { new KeyboardButton("🎁 معرفی به دوستان (سکه رایگان)") }
+    })
+        {
+            ResizeKeyboard = true, // Optional: Resize the keyboard
+            OneTimeKeyboard = true // Optional: Close keyboard after one use
+        };
+    }
+    private async Task<Message> BackToHome(Message msg)
+    {
+        _userStates[msg.From.Id] = "BackToHome";
+
+        string text = "از منوی پایین انتخاب کن !";
+        var ReplyMarkup = HomeInlineKeyboardMarkup();
+        return await _bot.SendTextMessageAsync(msg.Chat, text, replyMarkup: ReplyMarkup);
+
+    }
+    private async Task<bool> ValidMessage(Message msg)
+    {
+        if (msg.Type == MessageType.Location && _userStates.TryGetValue(key: msg.From.Id, out string state) && state == "awaiting_Sendlocation")
+        {
+            await _userService.SetLocation(userLocation: new UserLocationModel(userId: 3, lat: msg.Location.Latitude, lang: msg.Location.Longitude));
+            await _bot.SendTextMessageAsync(msg.Chat, "لوکیشن با موفقیت تغییر کرد");
+            await BackToHome(msg);
+            return true;
+        }
+        switch (msg.Text)
+        {
+            case "🔗 به یه ناشناس وصلم کن!":
+                {
+                    return true;
+
+                 };
+            case "🔍 جستجوی کاربران":
+                {
+                    return true;
+
+                 };
+            case "💰 سکه":
+                {
+                    return true;
+
+                 };
+            case "🎁 معرفی به دوستان (سکه رایگان)":
+                {
+                    return true;
+
+                 };
+            case "👤 پروفایل":
+                {
+                    var profileModel = await _userService.ShowProfile(msg.Chat);
+                    await _bot.SendPhotoAsync(msg.Chat, profileModel.Photo, caption: profileModel.Banner, replyMarkup: profileModel.InlineKeyboardMarkup);
+                    return true;
+
+                 };
+            case "❓ راهنما":
+                {
+                    break;
+                };
+
+            default:
+                break;
+        }
+        return false;
+    }
     private async Task OnMessage(Message msg)
     {
         _logger.LogInformation("Receive message type: {MessageType}", msg.Type);
+        if (await ValidMessage(msg))
+            return;
         if (msg.Text is not { } messageText)
             return;
 
-        Message sentMessage = await (messageText.Split(' ')[0] switch
-        {
-            "/user_profile" => _userService.Profile(msg),
-            "/photo" => SendPhoto(msg),
-            "/inline_buttons" => SendInlineKeyboard(msg),
-            "/keyboard" => SendReplyKeyboard(msg),
-            "/remove" => RemoveKeyboard(msg),
-            "/request" => RequestContactAndLocation(msg),
-            "/inline_mode" => StartInlineQuery(msg),
-            "/poll" => SendPoll(msg),
-            "/poll_anonymous" => SendAnonymousPoll(msg),
-            "/throw" => FailingHandler(msg),
-            _ => Usage(msg)
-        });
+        Message sentMessage = await BackToHome(msg);
+        //Message sentMessage = await (messageText.Split(' ')[0] switch
+        //{
+        //    "/user_profile" => _userService.ShowProfile(msg),
+        //    "/photo" => SendPhoto(msg),
+        //    "/inline_buttons" => SendInlineKeyboard(msg),
+        //    "/keyboard" => SendReplyKeyboard(msg),
+        //    "/remove" => RemoveKeyboard(msg),
+        //    "/request" => RequestContactAndLocation(msg),
+        //    "/inline_mode" => StartInlineQuery(msg),
+        //    "/poll" => SendPoll(msg),
+        //    "/poll_anonymous" => SendAnonymousPoll(msg),
+        //    "/throw" => FailingHandler(msg),
+        //    _ => Usage(msg)
+        //});
         _logger.LogInformation("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
     }
+    private async Task OnCallbackQuery(CallbackQuery callbackQuery)
+    {
+        _logger.LogInformation("Received inline keyboard callback from: {CallbackQueryId}", callbackQuery.Id);
+        switch (callbackQuery.Data)
+        {
+            case "my_location":
+                {
+                    var userLocation = await _userService.CurentLocation("7894");
+                    await _bot.SendLocationAsync(chatId: callbackQuery.Message!.Chat, latitude: userLocation.Lat, longitude: userLocation.Lang, replyMarkup: _userService.LocationInlineKeyboardMarkup());
+                    break;
+                };
+            case "change_or_set_my_location":
+                {
+                    await _bot.SendTextMessageAsync(chatId: callbackQuery.Message!.Chat, "لطفا از فعال بودن GPS خود مطمئن باشید .", replyMarkup: _userService.SetLocaionReplyKeyboardMarkup());
+                    _userStates[callbackQuery.From.Id] = "awaiting_Sendlocation";
+                    break;
+                };
+             default:
+                await _bot.AnswerCallbackQueryAsync(callbackQuery.Id, $"Received {callbackQuery.Data}");
+                await _bot.SendTextMessageAsync(callbackQuery.Message!.Chat, $"Received {callbackQuery.Data}");
+                break;
+        }
+    }
 
+    private Task UnknownUpdateHandlerAsync(Update update)
+    {
+        _logger.LogInformation("Unknown update type: {UpdateType}", update.Type);
+        return Task.CompletedTask;
+    }
+
+    #region lib Helpers
     async Task<Message> Usage(Message msg)
     {
         const string usage = """
@@ -104,8 +208,7 @@ public class UpdateHandler : IUpdateHandler
         return await _bot.SendPhotoAsync(msg.Chat, fileStream, caption: "Read https://telegrambots.github.io/book/");
     }
 
-    // Send inline keyboard. You can process responses in OnCallbackQuery handler
-    async Task<Message> SendInlineKeyboard(Message msg)
+     async Task<Message> SendInlineKeyboard(Message msg)
     {
         var inlineMarkup = new InlineKeyboardMarkup()
             .AddNewRow("1.1", "1.2", "1.3")
@@ -158,31 +261,6 @@ public class UpdateHandler : IUpdateHandler
         throw new NotImplementedException("FailingHandler");
     }
 
-    // Process Inline Keyboard callback data
-    private async Task OnCallbackQuery(CallbackQuery callbackQuery)
-    {
-        _logger.LogInformation("Received inline keyboard callback from: {CallbackQueryId}", callbackQuery.Id);
-        switch (callbackQuery.Data)
-        {
-            case "my_location":
-                {
-                    var userLocation = await _userService.CurentLocation("7894");
-                    await _bot.SendLocationAsync(chatId: callbackQuery.Message!.Chat, latitude: userLocation.Lat, longitude: userLocation.Lang, replyMarkup: _userService.LocationInlineKeyboardMarkup());
-                    break;
-                };
-            case "change_or_set_my_location":
-                {
-                    await _bot.SendTextMessageAsync(chatId: callbackQuery.Message!.Chat, "لطفا از فعال بودن GPS خود مطمئن باشید .", replyMarkup: _userService.SetLocaionReplyKeyboardMarkup());
-                    await _userService.SetLocation(userLocation: new UserLocationModel(userId: 3, lat: 35.6892f, lang: 51.3890f));
-                    break;
-                };
-            default:
-                await _bot.AnswerCallbackQueryAsync(callbackQuery.Id, $"Received {callbackQuery.Data}");
-                await _bot.SendTextMessageAsync(callbackQuery.Message!.Chat, $"Received {callbackQuery.Data}");
-                break;
-        }
-    }
-
     #region Inline Mode
 
     private async Task OnInlineQuery(InlineQuery inlineQuery)
@@ -218,9 +296,5 @@ public class UpdateHandler : IUpdateHandler
             await _bot.SendTextMessageAsync(pollAnswer.User.Id, $"You've chosen: {selectedOption.Text} in poll");
     }
 
-    private Task UnknownUpdateHandlerAsync(Update update)
-    {
-        _logger.LogInformation("Unknown update type: {UpdateType}", update.Type);
-        return Task.CompletedTask;
-    }
+    #endregion
 }
