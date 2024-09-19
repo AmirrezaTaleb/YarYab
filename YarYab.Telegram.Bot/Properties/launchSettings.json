@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "YarYab.Telegram.Bot": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "Token": "6710011138:AAHjzwnrUxjyiebTt3uBCVE3JSTEzmbJSMs"
+      }
+    }
+  }
+}
