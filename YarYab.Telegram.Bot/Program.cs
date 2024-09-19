@@ -19,6 +19,7 @@ IHost host = Host.CreateDefaultBuilder(args)
                 });
 
         services.AddScoped<UpdateHandler>();
+        services.AddScoped<IUserService,UserService>();
         services.AddScoped<ReceiverService>();
         services.AddHostedService<PollingService>();
     })

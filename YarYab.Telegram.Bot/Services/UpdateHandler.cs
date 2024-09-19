@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
@@ -6,16 +6,30 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InlineQueryResults;
 using Telegram.Bot.Types.ReplyMarkups;
+using YarYab.Telegram.Bot.Models;
+using static Telegram.Bot.TelegramBotClient;
 
 namespace YarYab.Telegram.Bot.Services;
 
-public class UpdateHandler(ITelegramBotClient bot, ILogger<UpdateHandler> logger) : IUpdateHandler
+public class UpdateHandler : IUpdateHandler
 {
+    private static readonly Dictionary<long, string> _userStates = new Dictionary<long, string>();
     private static readonly InputPollOption[] PollOptions = ["Hello", "World!"];
+    private readonly IUserService _userService;
+    private readonly ITelegramBotClient _bot;
+    private readonly ILogger<UpdateHandler> _logger;
+
+    public UpdateHandler(ITelegramBotClient bot, ILogger<UpdateHandler> logger, IUserService userService)
+    {
+        _bot = bot;
+        _logger = logger;
+        _userService = userService;
+    }
+
 
     public async Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, HandleErrorSource source, CancellationToken cancellationToken)
     {
-        logger.LogInformation("HandleError: {Exception}", exception);
+        _logger.LogInformation("HandleError: {Exception}", exception);
         // Cooldown in case of network connection error
         if (exception is RequestException)
             await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
@@ -43,12 +57,13 @@ public class UpdateHandler(ITelegramBotClient bot, ILogger<UpdateHandler> logger
 
     private async Task OnMessage(Message msg)
     {
-        logger.LogInformation("Receive message type: {MessageType}", msg.Type);
+        _logger.LogInformation("Receive message type: {MessageType}", msg.Type);
         if (msg.Text is not { } messageText)
             return;
 
         Message sentMessage = await (messageText.Split(' ')[0] switch
         {
+            "/user_profile" => _userService.Profile(msg),
             "/photo" => SendPhoto(msg),
             "/inline_buttons" => SendInlineKeyboard(msg),
             "/keyboard" => SendReplyKeyboard(msg),
@@ -60,7 +75,7 @@ public class UpdateHandler(ITelegramBotClient bot, ILogger<UpdateHandler> logger
             "/throw" => FailingHandler(msg),
             _ => Usage(msg)
         });
-        logger.LogInformation("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
+        _logger.LogInformation("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
     }
 
     async Task<Message> Usage(Message msg)
@@ -68,6 +83,7 @@ public class UpdateHandler(ITelegramBotClient bot, ILogger<UpdateHandler> logger
         const string usage = """
                 <b><u>Bot menu</u></b>:
                 /photo          - send a photo
+                /user_profile          - send user profile
                 /inline_buttons - send inline buttons
                 /keyboard       - send keyboard buttons
                 /remove         - remove keyboard buttons
@@ -77,15 +93,15 @@ public class UpdateHandler(ITelegramBotClient bot, ILogger<UpdateHandler> logger
                 /poll_anonymous - send an anonymous poll
                 /throw          - what happens if handler fails
             """;
-        return await bot.SendTextMessageAsync(msg.Chat, usage, parseMode: ParseMode.Html, replyMarkup: new ReplyKeyboardRemove());
+        return await _bot.SendTextMessageAsync(msg.Chat, usage, parseMode: ParseMode.Html, replyMarkup: new ReplyKeyboardRemove());
     }
 
     async Task<Message> SendPhoto(Message msg)
     {
-        await bot.SendChatActionAsync(msg.Chat, ChatAction.UploadPhoto);
+        await _bot.SendChatActionAsync(msg.Chat, ChatAction.UploadPhoto);
         await Task.Delay(2000); // simulate a long task
-        await using var fileStream = new FileStream("Files/bot.gif", FileMode.Open, FileAccess.Read);
-        return await bot.SendPhotoAsync(msg.Chat, fileStream, caption: "Read https://telegrambots.github.io/book/");
+        await using var fileStream = new FileStream("Files/_bot.gif", FileMode.Open, FileAccess.Read);
+        return await _bot.SendPhotoAsync(msg.Chat, fileStream, caption: "Read https://telegrambots.github.io/book/");
     }
 
     // Send inline keyboard. You can process responses in OnCallbackQuery handler
@@ -96,7 +112,7 @@ public class UpdateHandler(ITelegramBotClient bot, ILogger<UpdateHandler> logger
             .AddNewRow()
                 .AddButton("WithCallbackData", "CallbackData")
                 .AddButton(InlineKeyboardButton.WithUrl("WithUrl", "https://github.com/TelegramBots/Telegram.Bot"));
-        return await bot.SendTextMessageAsync(msg.Chat, "Inline buttons:", replyMarkup: inlineMarkup);
+        return await _bot.SendTextMessageAsync(msg.Chat, "Inline buttons:", replyMarkup: inlineMarkup);
     }
 
     async Task<Message> SendReplyKeyboard(Message msg)
@@ -104,12 +120,12 @@ public class UpdateHandler(ITelegramBotClient bot, ILogger<UpdateHandler> logger
         var replyMarkup = new ReplyKeyboardMarkup(true)
             .AddNewRow("1.1", "1.2", "1.3")
             .AddNewRow().AddButton("2.1").AddButton("2.2");
-        return await bot.SendTextMessageAsync(msg.Chat, "Keyboard buttons:", replyMarkup: replyMarkup);
+        return await _bot.SendTextMessageAsync(msg.Chat, "Keyboard buttons:", replyMarkup: replyMarkup);
     }
 
     async Task<Message> RemoveKeyboard(Message msg)
     {
-        return await bot.SendTextMessageAsync(msg.Chat, "Removing keyboard", replyMarkup: new ReplyKeyboardRemove());
+        return await _bot.SendTextMessageAsync(msg.Chat, "Removing keyboard", replyMarkup: new ReplyKeyboardRemove());
     }
 
     async Task<Message> RequestContactAndLocation(Message msg)
@@ -117,24 +133,24 @@ public class UpdateHandler(ITelegramBotClient bot, ILogger<UpdateHandler> logger
         var replyMarkup = new ReplyKeyboardMarkup(true)
             .AddButton(KeyboardButton.WithRequestLocation("Location"))
             .AddButton(KeyboardButton.WithRequestContact("Contact"));
-        return await bot.SendTextMessageAsync(msg.Chat, "Who or Where are you?", replyMarkup: replyMarkup);
+        return await _bot.SendTextMessageAsync(msg.Chat, "Who or Where are you?", replyMarkup: replyMarkup);
     }
 
     async Task<Message> StartInlineQuery(Message msg)
     {
         var button = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Inline Mode");
-        return await bot.SendTextMessageAsync(msg.Chat, "Press the button to start Inline Query\n\n" +
+        return await _bot.SendTextMessageAsync(msg.Chat, "Press the button to start Inline Query\n\n" +
             "(Make sure you enabled Inline Mode in @BotFather)", replyMarkup: new InlineKeyboardMarkup(button));
     }
 
     async Task<Message> SendPoll(Message msg)
     {
-        return await bot.SendPollAsync(msg.Chat, "Question", PollOptions, isAnonymous: false);
+        return await _bot.SendPollAsync(msg.Chat, "Question", PollOptions, isAnonymous: false);
     }
 
     async Task<Message> SendAnonymousPoll(Message msg)
     {
-        return await bot.SendPollAsync(chatId: msg.Chat, "Question", PollOptions);
+        return await _bot.SendPollAsync(chatId: msg.Chat, "Question", PollOptions);
     }
 
     static Task<Message> FailingHandler(Message msg)
@@ -145,35 +161,52 @@ public class UpdateHandler(ITelegramBotClient bot, ILogger<UpdateHandler> logger
     // Process Inline Keyboard callback data
     private async Task OnCallbackQuery(CallbackQuery callbackQuery)
     {
-        logger.LogInformation("Received inline keyboard callback from: {CallbackQueryId}", callbackQuery.Id);
-        await bot.AnswerCallbackQueryAsync(callbackQuery.Id, $"Received {callbackQuery.Data}");
-        await bot.SendTextMessageAsync(callbackQuery.Message!.Chat, $"Received {callbackQuery.Data}");
+        _logger.LogInformation("Received inline keyboard callback from: {CallbackQueryId}", callbackQuery.Id);
+        switch (callbackQuery.Data)
+        {
+            case "my_location":
+                {
+                    var userLocation = await _userService.CurentLocation("7894");
+                    await _bot.SendLocationAsync(chatId: callbackQuery.Message!.Chat, latitude: userLocation.Lat, longitude: userLocation.Lang, replyMarkup: _userService.LocationInlineKeyboardMarkup());
+                    break;
+                };
+            case "change_or_set_my_location":
+                {
+                    await _bot.SendTextMessageAsync(chatId: callbackQuery.Message!.Chat, "لطفا از فعال بودن GPS خود مطمئن باشید .", replyMarkup: _userService.SetLocaionReplyKeyboardMarkup());
+                    await _userService.SetLocation(userLocation: new UserLocationModel(userId: 3, lat: 35.6892f, lang: 51.3890f));
+                    break;
+                };
+            default:
+                await _bot.AnswerCallbackQueryAsync(callbackQuery.Id, $"Received {callbackQuery.Data}");
+                await _bot.SendTextMessageAsync(callbackQuery.Message!.Chat, $"Received {callbackQuery.Data}");
+                break;
+        }
     }
 
     #region Inline Mode
 
     private async Task OnInlineQuery(InlineQuery inlineQuery)
     {
-        logger.LogInformation("Received inline query from: {InlineQueryFromId}", inlineQuery.From.Id);
+        _logger.LogInformation("Received inline query from: {InlineQueryFromId}", inlineQuery.From.Id);
 
         InlineQueryResult[] results = [ // displayed result
             new InlineQueryResultArticle("1", "Telegram.Bot", new InputTextMessageContent("hello")),
             new InlineQueryResultArticle("2", "is the best", new InputTextMessageContent("world"))
         ];
-        await bot.AnswerInlineQueryAsync(inlineQuery.Id, results, cacheTime: 0, isPersonal: true);
+        await _bot.AnswerInlineQueryAsync(inlineQuery.Id, results, cacheTime: 0, isPersonal: true);
     }
 
     private async Task OnChosenInlineResult(ChosenInlineResult chosenInlineResult)
     {
-        logger.LogInformation("Received inline result: {ChosenInlineResultId}", chosenInlineResult.ResultId);
-        await bot.SendTextMessageAsync(chosenInlineResult.From.Id, $"You chose result with Id: {chosenInlineResult.ResultId}");
+        _logger.LogInformation("Received inline result: {ChosenInlineResultId}", chosenInlineResult.ResultId);
+        await _bot.SendTextMessageAsync(chosenInlineResult.From.Id, $"You chose result with Id: {chosenInlineResult.ResultId}");
     }
 
     #endregion
 
     private Task OnPoll(Poll poll)
     {
-        logger.LogInformation("Received Poll info: {Question}", poll.Question);
+        _logger.LogInformation("Received Poll info: {Question}", poll.Question);
         return Task.CompletedTask;
     }
 
@@ -182,12 +215,12 @@ public class UpdateHandler(ITelegramBotClient bot, ILogger<UpdateHandler> logger
         var answer = pollAnswer.OptionIds.FirstOrDefault();
         var selectedOption = PollOptions[answer];
         if (pollAnswer.User != null)
-            await bot.SendTextMessageAsync(pollAnswer.User.Id, $"You've chosen: {selectedOption.Text} in poll");
+            await _bot.SendTextMessageAsync(pollAnswer.User.Id, $"You've chosen: {selectedOption.Text} in poll");
     }
 
     private Task UnknownUpdateHandlerAsync(Update update)
     {
-        logger.LogInformation("Unknown update type: {UpdateType}", update.Type);
+        _logger.LogInformation("Unknown update type: {UpdateType}", update.Type);
         return Task.CompletedTask;
     }
 }
