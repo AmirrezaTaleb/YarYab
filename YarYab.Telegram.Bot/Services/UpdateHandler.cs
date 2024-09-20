@@ -80,6 +80,13 @@ public class UpdateHandler : IUpdateHandler
         return await _bot.SendTextMessageAsync(msg.Chat, text, replyMarkup: ReplyMarkup);
 
     }
+    private async Task<Message> GoToProFile(Message msg)
+    {
+        _userStates[msg.From.Id] = "BackToProFile";
+        var profileModel = await _userService.ShowProfile(msg.Chat);
+        return await _bot.SendPhotoAsync(msg.Chat, profileModel.Photo, caption: profileModel.Banner, replyMarkup: profileModel.InlineKeyboardMarkup);
+
+    }
     private async Task<Message> ShowFilterdUser(Message msg, List<UserModel> userModels)
     {
         StringBuilder stringBuilder = new();
@@ -97,12 +104,66 @@ public class UpdateHandler : IUpdateHandler
     }
     private async Task<bool> ValidMessage(Message msg)
     {
-        if (msg.Type == MessageType.Location && _userStates.TryGetValue(key: msg.From.Id, out string state) && state == "awaiting_Sendlocation")
+        string state;
+        if (msg.Type == MessageType.Location && _userStates.TryGetValue(key: msg.From.Id, out state) && state == "awaiting_Sendlocation")
         {
-            await _userService.SetLocation("49152",userLocation: new UserLocationModel( lat: msg.Location.Latitude, lang: msg.Location.Longitude));
+            await _userService.SetLocation("49152", userLocation: new UserLocationModel(lat: msg.Location.Latitude, lang: msg.Location.Longitude));
             await _bot.SendTextMessageAsync(msg.Chat, "لوکیشن با موفقیت تغییر کرد");
-            await BackToHome(msg);
+            await GoToProFile(msg);
             return true;
+        }
+        if (msg.Type == MessageType.Text && _userStates.TryGetValue(key: msg.From.Id, out state) && state == "awaiting_SetAge")
+        {
+            await _userService.EditAge("49152", int.Parse(msg.Text));
+            await _bot.SendTextMessageAsync(msg.Chat, "سن شما با موفقیت تغییر کرد");
+            await GoToProFile(msg);
+            return true;
+
+        }
+        if (msg.Type == MessageType.Text && _userStates.TryGetValue(key: msg.From.Id, out state) && state == "awaiting_SetName")
+        {
+            await _userService.EditName("49152", msg.Text);
+            await _bot.SendTextMessageAsync(msg.Chat, "نام شما با موفقیت تغییر کرد");
+            await GoToProFile(msg);
+            return true;
+
+        }
+        if (msg.Type == MessageType.Text && _userStates.TryGetValue(key: msg.From.Id, out state) && state == "awaiting_SetCity")
+        {
+            int CityId = _userService.GetCityIdByText(msg.Text);
+            _userService.EditCity("5161ass", CityId);
+            await _bot.SendTextMessageAsync(msg.Chat, "شههر شما با موفقیت تغییر کرد");
+
+            await GoToProFile(msg);
+            return true;
+
+        }
+        if (msg.Type == MessageType.Text && _userStates.TryGetValue(key: msg.From.Id, out state) && state == "awaiting_SetGender")
+        {
+            int GenderId = _userService.GetGenderIdByText(msg.Text);
+            _userService.EditGender("5161ass", GenderId);
+            await _bot.SendTextMessageAsync(msg.Chat, "جنسیت شما با موفقیت تغییر کرد");
+
+            await GoToProFile(msg);
+            return true;
+
+        }
+        if (msg.Type == MessageType.Photo && _userStates.TryGetValue(key: msg.From.Id, out state) && state == "awaiting_SetPhoto")
+        {
+            var fileId = msg.Photo.Last().FileId;
+            var file = await _bot.GetFileAsync(fileId);
+            byte[] photoBytes;
+            using (var stream = new MemoryStream())
+            {
+                await _bot.DownloadFileAsync(file.FilePath, stream);
+                photoBytes = stream.ToArray(); // Convert the stream to byte[]
+            }
+            _userService.EditPhoto("5161ass", photoBytes);
+            await _bot.SendTextMessageAsync(msg.Chat, "عکس پروفایل شما با موفقیت تغییر کرد");
+
+            await GoToProFile(msg);
+            return true;
+
         }
         switch (msg.Text)
         {
@@ -128,8 +189,7 @@ public class UpdateHandler : IUpdateHandler
                 };
             case "👤 پروفایل":
                 {
-                    var profileModel = await _userService.ShowProfile(msg.Chat);
-                    await _bot.SendPhotoAsync(msg.Chat, profileModel.Photo, caption: profileModel.Banner, replyMarkup: profileModel.InlineKeyboardMarkup);
+                    GoToProFile(msg);
                     return true;
 
                 };
@@ -203,6 +263,61 @@ public class UpdateHandler : IUpdateHandler
                     ShowFilterdUser(callbackQuery.Message, Filter);
                     break;
                 };
+            case "my_blocklist":
+                {
+                    var Filter = await _userService.BlackListById("7894");
+                    ShowFilterdUser(callbackQuery.Message, Filter);
+                    break;
+                };
+            case "my_contacts":
+                {
+                    var Filter = await _userService.ContactsById("7894");
+                    ShowFilterdUser(callbackQuery.Message, Filter);
+                    break;
+                };
+            case "edit_profile":
+                {
+                    await _bot.EditMessageReplyMarkupAsync(chatId: callbackQuery.Message.Chat.Id, messageId: callbackQuery.Message.MessageId, replyMarkup: _userService.EditProfileInlineKeyboardMarkup());
+                    break;
+                };
+            case "edit_gender":
+                {
+                    await _bot.SendTextMessageAsync(chatId: callbackQuery.Message!.Chat, "لطفا جنسیت خود را انتخاب کنید. .", replyMarkup: _userService.GenderOptionReplyKeyboardMarkup());
+                    _userStates[callbackQuery.From.Id] = "awaiting_SetGender";
+                    break;
+                };
+            case "edit_name":
+                {
+                    await _bot.SendTextMessageAsync(chatId: callbackQuery.Message!.Chat, "لطفا نام  خود را وارد  کنید. .");
+                    _userStates[callbackQuery.From.Id] = "awaiting_SetName";
+                    break;
+                };
+            case "edit_city":
+                {
+                    await _bot.SendTextMessageAsync(chatId: callbackQuery.Message!.Chat, "لطفا شهر  خود را انتخاب  کنید. ." , replyMarkup: _userService.CityOptionReplyKeyboardMarkup());
+                    _userStates[callbackQuery.From.Id] = "awaiting_SetCity";
+                    break;
+                };
+            case "edit_photo":
+                {
+                    await _bot.SendTextMessageAsync(chatId: callbackQuery.Message!.Chat, "لطفا عکس پروفایل  خود را ارسال  کنید. .");
+                    _userStates[callbackQuery.From.Id] = "awaiting_SetPhoto";
+                    break;
+                };
+            case "edit_age":
+                {
+                    await _bot.SendTextMessageAsync(chatId: callbackQuery.Message!.Chat, "لطفا سن  خود را وارد  کنید. .");
+                    _userStates[callbackQuery.From.Id] = "awaiting_SetAge";
+                    break;
+                };
+            case "back_to_profile":
+                {
+                    await _bot.EditMessageReplyMarkupAsync(chatId: callbackQuery.Message.Chat.Id, messageId: callbackQuery.Message.MessageId, replyMarkup: _userService.ProfileInlineKeyboardMarkup());
+                    break;
+                };
+
+
+
             default:
                 await _bot.AnswerCallbackQueryAsync(callbackQuery.Id, $"Received {callbackQuery.Data}");
                 await _bot.SendTextMessageAsync(callbackQuery.Message!.Chat, $"Received {callbackQuery.Data}");
