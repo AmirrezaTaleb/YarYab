@@ -32,7 +32,7 @@ namespace YarYab.Telegram.Bot.Services
         }
         public async Task<UserLocationModel> CurentLocation(string UserId)
         {
-            return new UserLocationModel(userId: 3, lat: 35.6892f, lang: 51.3890f);
+            return new UserLocationModel(lat: 35.6892f, lang: 51.3890f);
         }
         public string ProfileBanner()
         {
@@ -50,7 +50,7 @@ namespace YarYab.Telegram.Bot.Services
                  .AddNewRow()
                      .AddButton("مشاهده موقعیت location من", "my_location")
                      .AddNewRow()
-                     .AddButton("مشاهده لایک کننده", "my_like")
+                     .AddButton("مشاهده لایک کننده", "who_like_me")
                      .AddButton("فعال یا غیر فعال کردن لایک", "active_can_like")
                      .AddNewRow()
                      .AddButton("بلاک شده ها", "my_blocklist")
@@ -63,7 +63,7 @@ namespace YarYab.Telegram.Bot.Services
             return new FileStream("Files/images.png", FileMode.Open, FileAccess.Read);
         }
 
-        public async Task SetLocation(UserLocationModel userLocation)
+        public async Task SetLocation(string UserId, UserLocationModel userLocation)
         {
             await Task.Delay(1000);
         }
@@ -72,6 +72,22 @@ namespace YarYab.Telegram.Bot.Services
         {
             return new ReplyKeyboardMarkup(true).AddButton(KeyboardButton.WithRequestLocation("برای ارسال لوکیشن اینجا کلیک کنید !"));
 
+        }
+
+        public async Task<bool> ActiveOrDeActiveLike(string UserId)
+        {
+            await Task.Delay(1000);
+            return true;
+        }
+
+        public async Task<List<UserModel>> WhoLikeMe(string UserId)
+        {
+            await Task.Delay(1000);
+            return
+                new List<UserModel>() {
+                new UserModel() { CityTitle = "Tehran", LastActivity = DateTime.Now.AddHours(-1), LastSeen = DateTime.Now.AddHours(-0.5), Name = "Amirreza", UserId = "/User_Amirrafkja3" ,Location =new UserLocationModel(lat: 35.6892f, lang: 51.3890f)},
+                new UserModel() { CityTitle = "Tehran", LastActivity = DateTime.Now.AddHours(-2), LastSeen = DateTime.Now.AddHours(-0.75), Name = "زهرا", UserId = "/User_Zahrasdnia" ,Location =new UserLocationModel(lat: 36.6892f, lang: 51.3890f)}
+                };
         }
     }
 
@@ -89,7 +105,9 @@ namespace YarYab.Telegram.Bot.Services
     {
         Task<UserProfileMessageModel> ShowProfile(Chat chat);
         Task<UserLocationModel> CurentLocation(string UserId);
-        Task SetLocation(UserLocationModel userLocation);
+        Task<List<UserModel>> WhoLikeMe(string UserId);
+        Task<bool> ActiveOrDeActiveLike(string UserId);
+        Task SetLocation(string UserId,UserLocationModel userLocation);
         InlineKeyboardMarkup LocationInlineKeyboardMarkup();
         InlineKeyboardMarkup ProfileInlineKeyboardMarkup();
         ReplyKeyboardMarkup SetLocaionReplyKeyboardMarkup();

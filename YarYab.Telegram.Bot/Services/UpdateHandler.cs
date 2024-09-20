@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
@@ -13,6 +14,7 @@ namespace YarYab.Telegram.Bot.Services;
 
 public class UpdateHandler : IUpdateHandler
 {
+    #region ctor
     private static readonly Dictionary<long, string> _userStates = new Dictionary<long, string>();
     private static readonly InputPollOption[] PollOptions = ["Hello", "World!"];
     private readonly IUserService _userService;
@@ -26,7 +28,7 @@ public class UpdateHandler : IUpdateHandler
         _userService = userService;
     }
 
-
+    #endregion
     public async Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, HandleErrorSource source, CancellationToken cancellationToken)
     {
         _logger.LogInformation("HandleError: {Exception}", exception);
@@ -78,11 +80,26 @@ public class UpdateHandler : IUpdateHandler
         return await _bot.SendTextMessageAsync(msg.Chat, text, replyMarkup: ReplyMarkup);
 
     }
+    private async Task<Message> ShowFilterdUser(Message msg, List<UserModel> userModels)
+    {
+        StringBuilder stringBuilder = new();
+        stringBuilder.AppendLine("نتایج:");
+        foreach (var item in userModels)
+        {
+            stringBuilder.AppendLine($"{item.Name} -- {item.Age}-- {item.CityTitle}");
+            stringBuilder.AppendLine($"{item.UserId} ");
+            stringBuilder.AppendLine($"{(DateTime.Now - item.LastSeen).TotalHours} آنلاین بوده در : ");
+            stringBuilder.AppendLine($"{(DateTime.Now - item.LastActivity).TotalHours} اخرین زمان فعالیت در بات: ");
+            stringBuilder.AppendLine("_______________________ ");
+        }
+        return await _bot.SendTextMessageAsync(msg.Chat, stringBuilder.ToString());
+
+    }
     private async Task<bool> ValidMessage(Message msg)
     {
         if (msg.Type == MessageType.Location && _userStates.TryGetValue(key: msg.From.Id, out string state) && state == "awaiting_Sendlocation")
         {
-            await _userService.SetLocation(userLocation: new UserLocationModel(userId: 3, lat: msg.Location.Latitude, lang: msg.Location.Longitude));
+            await _userService.SetLocation("49152",userLocation: new UserLocationModel( lat: msg.Location.Latitude, lang: msg.Location.Longitude));
             await _bot.SendTextMessageAsync(msg.Chat, "لوکیشن با موفقیت تغییر کرد");
             await BackToHome(msg);
             return true;
@@ -93,29 +110,29 @@ public class UpdateHandler : IUpdateHandler
                 {
                     return true;
 
-                 };
+                };
             case "🔍 جستجوی کاربران":
                 {
                     return true;
 
-                 };
+                };
             case "💰 سکه":
                 {
                     return true;
 
-                 };
+                };
             case "🎁 معرفی به دوستان (سکه رایگان)":
                 {
                     return true;
 
-                 };
+                };
             case "👤 پروفایل":
                 {
                     var profileModel = await _userService.ShowProfile(msg.Chat);
                     await _bot.SendPhotoAsync(msg.Chat, profileModel.Photo, caption: profileModel.Banner, replyMarkup: profileModel.InlineKeyboardMarkup);
                     return true;
 
-                 };
+                };
             case "❓ راهنما":
                 {
                     break;
@@ -168,7 +185,25 @@ public class UpdateHandler : IUpdateHandler
                     _userStates[callbackQuery.From.Id] = "awaiting_Sendlocation";
                     break;
                 };
-             default:
+            case "active_can_like":
+                {
+                    var IsLikeActiveNow = await _userService.ActiveOrDeActiveLike("7894");
+                    string message;
+                    if (IsLikeActiveNow)
+                        message = "قابلیت لایک برای شما فعال شد";
+                    else
+                        message = "قابلیت لایک برای شما غیرفعال شد";
+                    await _bot.SendTextMessageAsync(chatId: callbackQuery.Message!.Chat, message);
+                    BackToHome(callbackQuery.Message);
+                    break;
+                };
+            case "who_like_me":
+                {
+                    var Filter = await _userService.WhoLikeMe("7894");
+                    ShowFilterdUser(callbackQuery.Message, Filter);
+                    break;
+                };
+            default:
                 await _bot.AnswerCallbackQueryAsync(callbackQuery.Id, $"Received {callbackQuery.Data}");
                 await _bot.SendTextMessageAsync(callbackQuery.Message!.Chat, $"Received {callbackQuery.Data}");
                 break;
@@ -208,7 +243,7 @@ public class UpdateHandler : IUpdateHandler
         return await _bot.SendPhotoAsync(msg.Chat, fileStream, caption: "Read https://telegrambots.github.io/book/");
     }
 
-     async Task<Message> SendInlineKeyboard(Message msg)
+    async Task<Message> SendInlineKeyboard(Message msg)
     {
         var inlineMarkup = new InlineKeyboardMarkup()
             .AddNewRow("1.1", "1.2", "1.3")
